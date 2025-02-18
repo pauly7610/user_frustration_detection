@@ -1,6 +1,7 @@
 import rateLimit, { Store, Options, RateLimitRequestHandler } from 'express-rate-limit';
 import { Redis } from 'ioredis';
 import { redis } from '../config/redis';
+import { Request, Response } from 'express';
 
 interface IRateLimitInfo {
   totalHits: number;
@@ -59,12 +60,16 @@ export const createRateLimiter = (
     store: new RedisStore(),
     skipFailedRequests: false,
     skipSuccessfulRequests: false,
-    requestWasSuccessful: (req) => req.statusCode < 400,
-    handler: (req, res) => {
+    requestWasSuccessful: (req: Request): boolean => {
+      return req.statusCode !== undefined ? req.statusCode < 400 : true;
+    },
+    handler: (req: Request, res: Response): void => {
       res.status(429).json({
         error: 'Too many requests, please try again later.'
       });
     },
-    keyGenerator: (req) => req.ip
+    keyGenerator: (req: Request): string => {
+      return req.ip || req.headers['x-forwarded-for']?.toString() || req.socket.remoteAddress || '0.0.0.0';
+    }
   });
 };

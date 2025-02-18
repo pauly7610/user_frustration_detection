@@ -1,5 +1,4 @@
 // src/models/database/Alert.ts
-
 export type AlertStatus = 'new' | 'acknowledged' | 'resolved';
 
 export type AlertType = 
@@ -18,10 +17,4 @@ export interface Alert {
   timestamp: string;
   status: AlertStatus;
   createdAt: string;
-  updatedAt?: string;
-  metadata?: {
-    url?: string;
-    userAgent?: string;
-    errorCount?: number;
-  };
 }
