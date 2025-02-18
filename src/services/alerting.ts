@@ -1,3 +1,4 @@
+// src/services/alerting.ts
 import { Alert, AlertType, AlertStatus } from '../models/database/Alert';
 import { createClient } from '@supabase/supabase-js';
 
@@ -6,29 +7,30 @@ export class AlertService {
 
   constructor() {
     this.supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_KEY!
     );
   }
 
   async createAlert(data: {
     sessionId: string;
     score: number;
-    type: string;
+    type: AlertType;
     timestamp: string;
   }): Promise<void> {
     const severity = this.calculateSeverity(data.score);
     const alert: Alert = {
       ...data,
       severity,
-      status: 'new' as AlertStatus,
+      status: 'new',
       createdAt: new Date().toISOString()
     };
 
-    // Store in Supabase
-    await this.supabase
+    const { error } = await this.supabase
       .from('alerts')
       .insert(alert);
+
+    if (error) throw error;
 
     // Send notifications based on severity
     if (severity >= 8) {
@@ -43,7 +45,6 @@ export class AlertService {
   }
 
   private async notifyEngineering(alert: Alert): Promise<void> {
-    // Implement Slack notification
     const message = {
       channel: 'engineering-alerts',
       text: `🚨 High Severity Frustration Detected\n
@@ -52,7 +53,6 @@ export class AlertService {
         Type: ${alert.type}`
     };
 
-    // Send to Slack webhook
     await fetch(process.env.SLACK_WEBHOOK_URL!, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -1,9 +1,27 @@
+// src/models/database/Alert.ts
+
+export type AlertStatus = 'new' | 'acknowledged' | 'resolved';
+
+export type AlertType = 
+  | 'rage_clicking'
+  | 'erratic_scrolling'
+  | 'navigation_loops'
+  | 'abandoned_form'
+  | 'repeated_errors';
+
 export interface Alert {
   id?: string;
   sessionId: string;
+  type: AlertType;
+  score: number;
   severity: number;
-  type: string;
   timestamp: string;
-  status: 'new' | 'acknowledged' | 'resolved';
+  status: AlertStatus;
   createdAt: string;
+  updatedAt?: string;
+  metadata?: {
+    url?: string;
+    userAgent?: string;
+    errorCount?: number;
+  };
 }
